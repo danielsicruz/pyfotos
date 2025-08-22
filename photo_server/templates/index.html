@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor de Fotos</title>
+</head>
+
+<body>
+    <h1>Servidor de Fotos</h1>
+    <h3>Controle da TV</h3>
+    <form action="/tv/on" method="post" style="display:inline;">
+        <button type="submit" class="on">Ligar TV</button>
+    </form>
+    <form action="/tv/off" method="post" style="display:inline;">
+        <button type="submit" class="off">Desligar TV</button>
+    </form>
+    <!-- Formulário de Upload -->
+    <h2>Enviar Imagem</h2>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file" multiple required>
+        <button type="submit">Enviar</button>
+    </form>
+
+    <!-- Galeria de Imagens -->
+    <h2>Galeria</h2>
+    <div>
+        {% for image in images %}
+        <div style="display:inline-block; margin: 10px;">
+            <img src="{{ url_for('uploaded_file', filename=image) }}" width="200px" height="200px">
+            <br>
+            <a href="/delete/{{ image }}">Excluir</a>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        margin: 10px;
+        cursor: pointer;
+    }
+
+    .on {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .off {
+        background-color: #f44336;
+        color: white;
+    }
+</style>
+
+</html>
