@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, abort, Response
 import os, subprocess
+import signal
+
+vlc_process = None
 
 app = Flask(__name__)
 
@@ -10,7 +13,7 @@ PASSWORD = "senha123"
 # Caminho onde as fotos serão armazenadas
 UPLOAD_FOLDER = './uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'mov', 'mp4', 'avi', 'mkv'}
 
 # Função para verificar se a extensão da imagem é permitida
 def allowed_file(filename):
@@ -58,6 +61,35 @@ def handle_tv_off():
     except subprocess.CalledProcessError as e:
         return f"Erro ao desligar a TV: {str(e)}"
 
+@app.route('/slideshow/start', methods=['POST'])
+def start_slideshow():
+    return requires_auth(handle_start_slideshow)()
+    
+def handle_start_slideshow():
+    global vlc_process
+    try:
+        # Se já estiver rodando, não inicia outro
+        if vlc_process and vlc_process.poll() is None:
+            return "Slideshow já está em execução."
+
+        # Comando para rodar o VLC em tela cheia na pasta uploads
+        cmd = ["cvlc", "-f", "-L", "--no-video-title-show", os.path.abspath(UPLOAD_FOLDER)]
+        vlc_process = subprocess.Popen(cmd)
+        
+        return redirect(url_for('index'))
+    except Exception as e:
+        return f"Erro ao iniciar slideshow: {str(e)}"
+
+@app.route('/slideshow/stop', methods=['POST'])
+def stop_slideshow():
+    return requires_auth(handle_stop_slideshow)()
+
+def handle_stop_slideshow():
+    global vlc_process
+    if vlc_process:
+        vlc_process.terminate() # Encerra o processo graciosamente
+        vlc_process = None
+    return redirect(url_for('index'))
 # Página inicial que lista as imagens
 @app.route('/')
 def index():
